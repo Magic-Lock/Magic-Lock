@@ -1,16 +1,17 @@
 import asyncio
+import serial_asyncio
 from bleak import BleakScanner, BLEDevice, AdvertisementData
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 
 ###################### Doors ######################
 class Door(ABC):
-    @abstractclassmethod
+    @abstractmethod
     def lock(): pass
 
-    @abstractclassmethod
+    @abstractmethod
     def unlock(): pass
 
-def MagicDoor(Door):
+class MagicDoor(Door):
     def __init__(self, relais_pin = 27):
         import RPi.GPIO as GPIO
         self.GPIO = GPIO
@@ -25,7 +26,7 @@ def MagicDoor(Door):
     def unlock(self):
         self.GPIO.output(self.relais_pin, 1024)
 
-def PrintDoor(Door):
+class PrintDoor(Door):
     def lock(self):
         print('Door LOCKED!')
 
@@ -34,12 +35,35 @@ def PrintDoor(Door):
 ###################################################
 ###################### Handles ####################
 class DoorHandle(ABC):
-    @abstractclassmethod
+    @abstractmethod
     def is_touched() -> bool: pass
 
+    @abstractmethod
+    async def loop(): pass
+
 class MagicDoorHandle(DoorHandle):
+    def __init__(self):
+        self.magic = 0.0
+
+    def is_touched(self) -> bool:
+        return self.magic >= 10.0
+
+    async def loop(self):
+        reader, writer = await serial_asyncio.open_serial_connection(url="/dev/ttyACM0", baudrate=115200, timeout=1.0)
+
+        while True:
+            line = (await reader.readline()).decode('utf-8').rstrip()
+            try:
+                self.magic = float(line.split(' ')[0])
+            except Exception as ex:
+                print(ex)
+
+class AlwaysTouchedDoorHandle(DoorHandle):
     def is_touched() -> bool:
-        return False
+        return True
+    
+    async def loop(self):
+        return
 
 ###################################################
 
@@ -52,23 +76,26 @@ def is_raspberrypi():
 
 ##################### Main code ###################
 door: Door
+door_handle: DoorHandle
 if is_raspberrypi():
     door = MagicDoor()
+    door_handle = MagicDoorHandle()
 else:
     door = PrintDoor()
+    door_handle = AlwaysTouchedDoorHandle()
 
 door_open = None
-async def main():
+async def detector():
     def callback(device: BLEDevice, advertisement_data: AdvertisementData):
         if device.name != "MOMENTUM TW 3": return
         global door_open
 
         if advertisement_data.rssi >= -75:
-            if not door_open:
+            if (not door_open) and door_handle.is_touched():
                 door.unlock()
                 door_open = True
         else:
-            if door_open:
+            if door_open and not door_handle.is_touched():
                 door.lock()
                 door_open = False
 
@@ -78,5 +105,12 @@ async def main():
     await scanner.start()
     while True:
         await asyncio.sleep(99)
+
+
+async def main():
+    await asyncio.gather(
+        door_handle.loop(),
+        detector()
+    )
 
 asyncio.run(main())
