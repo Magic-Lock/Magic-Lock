@@ -1,7 +1,9 @@
 import asyncio
+import io
 import serial_asyncio
-from bleak import BleakScanner, BLEDevice, AdvertisementData
+from aiohttp import web
 from abc import ABC, abstractmethod
+import time
 
 ###################### Doors ######################
 class Door(ABC):
@@ -21,10 +23,10 @@ class MagicDoor(Door):
         self.relais_pin = relais_pin
 
     def lock(self):
-        self.GPIO.output(self.relais_pin, 0)
+        self.GPIO.output(self.relais_pin, 1024)
 
     def unlock(self):
-        self.GPIO.output(self.relais_pin, 1024)
+        self.GPIO.output(self.relais_pin, 0)
 
 class PrintDoor(Door):
     def lock(self):
@@ -43,10 +45,10 @@ class DoorHandle(ABC):
 
 class MagicDoorHandle(DoorHandle):
     def __init__(self):
-        self.magic = 0.0
+        self.magic = [0.0, 0.0, 0.0, 0.0, 0.0]
 
     def is_touched(self) -> bool:
-        return self.magic >= 10.0
+        return all(m >= 10.0 for m in self.magic)
 
     async def loop(self):
         reader, writer = await serial_asyncio.open_serial_connection(url="/dev/ttyACM0", baudrate=115200, timeout=1.0)
@@ -54,14 +56,15 @@ class MagicDoorHandle(DoorHandle):
         while True:
             line = (await reader.readline()).decode('utf-8').rstrip()
             try:
-                self.magic = float(line.split(' ')[0])
+                magic = float(line.split(' ')[0])
+                self.magic = [*self.magic[1:], magic]
             except Exception as ex:
                 print(ex)
 
 class AlwaysTouchedDoorHandle(DoorHandle):
-    def is_touched() -> bool:
+    def is_touched(self) -> bool:
         return True
-    
+
     async def loop(self):
         return
 
@@ -78,34 +81,48 @@ def is_raspberrypi():
 door: Door
 door_handle: DoorHandle
 if is_raspberrypi():
+    print("This is a Raspberry Pi!")
     door = MagicDoor()
     door_handle = MagicDoorHandle()
 else:
+    print("This is not a Raspberry Pi!")
     door = PrintDoor()
     door_handle = AlwaysTouchedDoorHandle()
 
-door_open = None
+door.lock()
+door_open = False
+
 async def detector():
-    def callback(device: BLEDevice, advertisement_data: AdvertisementData):
-        if device.name != "MOMENTUM TW 3": return
-        global door_open
+    async def unlock(request):
+        print('Unlock request')
+        if door_handle.is_touched():
+            door.unlock()
+            print('Door unlocked')
+            return web.Response(text="Unlocked")
+        print('Handle not touched')
+        return web.Response(text="Handle not touched")
 
-        if advertisement_data.rssi >= -75:
-            if (not door_open) and door_handle.is_touched():
-                door.unlock()
-                door_open = True
-        else:
-            if door_open and not door_handle.is_touched():
-                door.lock()
-                door_open = False
+    async def lock(request):
+        print('Lock request')
+        if not door_handle.is_touched():
+            door.lock()
+            print('Door locked!')
+            return web.Response(text="Locked")
+        print('Handle still touched')
+        return web.Response(text="Handle still touched")
 
-    scanner = BleakScanner()
-    scanner.register_detection_callback(callback)
+    app = web.Application()
+    app.add_routes([
+        web.get('/unlock', unlock),
+        web.get('/lock', lock)
+    ])
 
-    await scanner.start()
-    while True:
-        await asyncio.sleep(99)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner)
+    await site.start()
 
+    await asyncio.Event().wait()
 
 async def main():
     await asyncio.gather(
