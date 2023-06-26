@@ -22,11 +22,13 @@ class DoorConnector {
     private func openDoor() {
         print("openDoor")
         sendGetRequest(with: Constants.openUrl!)
+        NotificationManager.sendNotification(opened: true)
     }
     
     private func closeDoor() {
         print("closeDoor")
         sendGetRequest(with: Constants.closeUrl!)
+        NotificationManager.sendNotification(opened: false)
     }
     
     private func sendGetRequest(with url: URL) {
