@@ -27,7 +27,8 @@ class BTManager: NSObject, ObservableObject {
         peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
         locationManager = CLLocationManager()
         locationManager!.delegate = self
-        locationManager!.requestWhenInUseAuthorization()
+        locationManager!.requestAlwaysAuthorization()
+        locationManager!.activityType = .otherNavigation
         print("Started BTManager")
     }
     
@@ -36,7 +37,9 @@ class BTManager: NSObject, ObservableObject {
             && CLLocationManager.isRangingAvailable() {
             print("start ranging")
             let beaconConstraint = CLBeaconIdentityConstraint(uuid: Constants.doorUUID!)
+            let beaconRegion = CLBeaconRegion(beaconIdentityConstraint: beaconConstraint, identifier: "DoorBeacon")
             locationManager!.startRangingBeacons(satisfying: beaconConstraint)
+            locationManager!.startMonitoring(for: beaconRegion)
             beaconDetectionIsActive = true
         } else {
             assertionFailure("Device does not support BLE")
