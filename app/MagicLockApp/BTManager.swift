@@ -5,13 +5,16 @@
 //  Created by Gabriel Knoll on 20.06.23.
 //
 
-import Foundation
 import CoreBluetooth
 import CoreLocation
+import SwiftUI
 
-class BTManager: NSObject {
+class BTManager: NSObject, ObservableObject {
+    @Published var beaconDetectionIsActive = false
+    @Published var doorIsOpen = false
+  
     private let doorConnector = DoorConnector()
-    
+
     private var peripheralManager: CBPeripheralManager?
     private var locationManager: CLLocationManager?
     
@@ -34,6 +37,7 @@ class BTManager: NSObject {
             print("start ranging")
             let beaconConstraint = CLBeaconIdentityConstraint(uuid: Constants.doorUUID!)
             locationManager!.startRangingBeacons(satisfying: beaconConstraint)
+            beaconDetectionIsActive = true
         } else {
             assertionFailure("Device does not support BLE")
         }
@@ -49,8 +53,10 @@ extension BTManager: CLLocationManagerDelegate {
             print("found beacon with rssi: \(beacon.rssi)")
             if beacon.rssi >= -50 {
                 doorConnector.doorShouldBeUnlocked = true
+                doorIsOpen = true
             } else if beacon.rssi <= -50 {
                 doorConnector.doorShouldBeUnlocked = false
+                doorIsOpen = false
             }
         }
     }

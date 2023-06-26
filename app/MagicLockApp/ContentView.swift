@@ -8,12 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject var btManager = BTManager()
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+        VStack(alignment: .leading) {
+            Text("MagicLock")
+                .font(.largeTitle)
+            Spacer()
+            Text(verbatim: "Beacon Detection is \(btManager.beaconDetectionIsActive ? "active" : "not active")")
+                .font(.subheadline)
+                .padding()
+            Text(verbatim: "Door is \(btManager.doorIsOpen ? "open" : "closed")")
+                .font(.subheadline)
+                .padding()
+            Spacer()
         }
         .padding()
     }
