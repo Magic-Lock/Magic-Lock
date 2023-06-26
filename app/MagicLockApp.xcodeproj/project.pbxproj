@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0B0F0CF2A49D2CA004E7BC0 /* DoorConnector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B0F0CE2A49D2CA004E7BC0 /* DoorConnector.swift */; };
+		C0B0F0D12A49D6E0004E7BC0 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B0F0D02A49D6E0004E7BC0 /* Constants.swift */; };
 		C0B2242B2A41BC96008B771A /* MagicLockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B2242A2A41BC96008B771A /* MagicLockApp.swift */; };
 		C0B2242D2A41BC96008B771A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0B2242C2A41BC96008B771A /* ContentView.swift */; };
 		C0B2242F2A41BC97008B771A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0B2242E2A41BC97008B771A /* Assets.xcassets */; };
@@ -15,6 +17,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C0B0F0CE2A49D2CA004E7BC0 /* DoorConnector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoorConnector.swift; sourceTree = "<group>"; };
+		C0B0F0D02A49D6E0004E7BC0 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		C0B224272A41BC96008B771A /* MagicLockApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MagicLockApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0B2242A2A41BC96008B771A /* MagicLockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagicLockApp.swift; sourceTree = "<group>"; };
 		C0B2242C2A41BC96008B771A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -58,6 +62,8 @@
 				C0B2242A2A41BC96008B771A /* MagicLockApp.swift */,
 				C0B2242C2A41BC96008B771A /* ContentView.swift */,
 				C0B224382A41C2FC008B771A /* BTManager.swift */,
+				C0B0F0CE2A49D2CA004E7BC0 /* DoorConnector.swift */,
+				C0B0F0D02A49D6E0004E7BC0 /* Constants.swift */,
 				C0B2242E2A41BC97008B771A /* Assets.xcassets */,
 				C0B224302A41BC97008B771A /* Preview Content */,
 			);
@@ -142,7 +148,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0B0F0D12A49D6E0004E7BC0 /* Constants.swift in Sources */,
 				C0B2242D2A41BC96008B771A /* ContentView.swift in Sources */,
+				C0B0F0CF2A49D2CA004E7BC0 /* DoorConnector.swift in Sources */,
 				C0B2242B2A41BC96008B771A /* MagicLockApp.swift in Sources */,
 				C0B224392A41C2FC008B771A /* BTManager.swift in Sources */,
 			);
