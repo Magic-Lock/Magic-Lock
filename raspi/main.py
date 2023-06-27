@@ -4,6 +4,8 @@ import serial_asyncio
 from aiohttp import web
 from abc import ABC, abstractmethod
 import time
+from enum import Enum
+from math import floor
 
 ###################### Doors ######################
 class Door(ABC):
@@ -45,10 +47,13 @@ class DoorHandle(ABC):
 
 class MagicDoorHandle(DoorHandle):
     def __init__(self):
-        self.magic = [0.0, 0.0, 0.0, 0.0, 0.0]
+        self.magic = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def is_touched(self) -> bool:
-        return all(m >= 10.0 for m in self.magic)
+        copy = list(self.magic)
+        copy.sort()
+        return copy[floor(len(copy) / 2)] != 0
+        # return all(m >= 10.0 for m in self.magic)
 
     async def loop(self):
         reader, writer = await serial_asyncio.open_serial_connection(url="/dev/ttyACM0", baudrate=115200, timeout=1.0)
@@ -57,6 +62,7 @@ class MagicDoorHandle(DoorHandle):
             line = (await reader.readline()).decode('utf-8').rstrip()
             try:
                 magic = float(line.split(' ')[0])
+                # print(magic)
                 self.magic = [*self.magic[1:], magic]
             except Exception as ex:
                 print(ex)
@@ -89,32 +95,48 @@ else:
     door = PrintDoor()
     door_handle = AlwaysTouchedDoorHandle()
 
-door.lock()
-door_open = False
+near = False
+touched = False
+
+def handle_state_change():
+    if not near or not touched:
+        door.lock()
+        print('Door locked!')
+    elif near and touched:
+        door.unlock()
+        print('Door unlocked!')
 
 async def detector():
-    async def unlock(request):
-        print('Unlock request')
-        if door_handle.is_touched():
-            door.unlock()
-            print('Door unlocked')
-            return web.Response(text="Unlocked")
-        print('Handle not touched')
-        return web.Response(text="Handle not touched")
+    handle_state_change()
 
-    async def lock(request):
-        print('Lock request')
-        if not door_handle.is_touched():
-            door.lock()
-            print('Door locked!')
-            return web.Response(text="Locked")
-        print('Handle still touched')
-        return web.Response(text="Handle still touched")
+    async def near(request):
+        global near
+        print('User is near')
+        near = True
+        handle_state_change()
+        return web.Response(text="Hallo Gabriel")
+
+    async def far(request):
+        global near
+        print('User is far')
+        near = False
+        handle_state_change()
+        return web.Response(text="Tschau Gabriel")
+
+    async def touch_loop():
+        global touched
+        while True:
+            new_touched = door_handle.is_touched()
+            if touched != new_touched:
+                print('Handle touched' if new_touched else 'Handle no longer touched')
+                touched = new_touched
+                handle_state_change()
+            await asyncio.sleep(0.01)
 
     app = web.Application()
     app.add_routes([
-        web.get('/unlock', unlock),
-        web.get('/lock', lock)
+        web.get('/near', near),
+        web.get('/far', far)
     ])
 
     runner = web.AppRunner(app)
@@ -122,7 +144,7 @@ async def detector():
     site = web.TCPSite(runner)
     await site.start()
 
-    await asyncio.Event().wait()
+    await touch_loop()
 
 async def main():
     await asyncio.gather(
