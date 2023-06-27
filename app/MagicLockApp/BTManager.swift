@@ -10,6 +10,7 @@ import CoreLocation
 import SwiftUI
 
 class BTManager: NSObject, ObservableObject {
+    @Published var lastRSSI: Int = 0
     @Published var beaconDetectionIsActive = false
     @Published var doorIsOpen = false
     @Published var shouldActivate = false {
@@ -73,10 +74,11 @@ extension BTManager: CLLocationManagerDelegate {
         if let beacon = beacons.first(where: {$0.uuid.uuidString == "636F3F8F-6491-4BEE-95F7-D8CC64A863B5"}) {
             guard beacon.rssi != 0 else { return }
             print("found beacon with rssi: \(beacon.rssi)")
-            if beacon.rssi >= -50 {
+            lastRSSI = beacon.rssi
+            if beacon.rssi >= -55 {
                 doorConnector.doorShouldBeUnlocked = true
                 doorIsOpen = true
-            } else if beacon.rssi <= -50 {
+            } else if beacon.rssi <= -55 {
                 doorConnector.doorShouldBeUnlocked = false
                 doorIsOpen = false
             }

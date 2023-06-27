@@ -28,16 +28,10 @@ class NotificationManager: NSObject {
     public static func sendNotification(opened: Bool) {
         let content = UNMutableNotificationContent()
         content.title = "MagicLock"
-        content.body = "\(opened ? "opened" : "closed") the door"
+        content.body = "\(opened ? "Opened" : "Closed") Door!"
         content.sound = UNNotificationSound.default
 
-        // show this notification five seconds from now
-        //let trigger = UNTimeIntervalNotificationTrigger(timeInterval: Date.now.timeIntervalSinceNow, repeats: false)
-
-        // choose a random identifier
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-
-        // add our notification request
         UNUserNotificationCenter.current().add(request)
     }
 }

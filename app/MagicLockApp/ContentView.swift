@@ -19,6 +19,7 @@ struct ContentView: View {
                             Spacer()
                             Image(systemName: "\(btManager.doorIsOpen ? "door.left.hand.open" : "door.left.hand.closed")")
                         }
+                        Text("Last RSSI: \(btManager.lastRSSI)")
                     }
                     Section(header: Text("BLE Beacon")) {
                         HStack {
