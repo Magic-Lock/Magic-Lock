@@ -11,11 +11,14 @@ import SwiftUI
 @main
 struct MagicLockApp: App {
     @State var notificationManager = NotificationManager()
-
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .onAppear(perform: notificationManager.requestPermission)
+            ZStack {
+                Color.offWhite.ignoresSafeArea()
+                ContentView()
+                    .onAppear(perform: notificationManager.requestPermission)
+            }
         }
     }
 }

@@ -12,16 +12,22 @@ import SwiftUI
 class BTManager: NSObject, ObservableObject {
     @Published var beaconDetectionIsActive = false
     @Published var doorIsOpen = false
+    @Published var shouldActivate = false {
+        didSet {
+            if shouldActivate {
+                startManager()
+            } else {
+                stopManager()
+            }
+        }
+    }
   
     private let doorConnector = DoorConnector()
 
     private var peripheralManager: CBPeripheralManager?
     private var locationManager: CLLocationManager?
-    
-    override init() {
-        super.init()
-        startManager()
-    }
+    private var beaconConstraint: CLBeaconIdentityConstraint?
+    private var beaconRegion: CLBeaconRegion?
     
     private func startManager() {
         peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
@@ -32,16 +38,27 @@ class BTManager: NSObject, ObservableObject {
         print("Started BTManager")
     }
     
+    private func stopManager() {
+        print("stop manager")
+        if let region = beaconRegion {
+            locationManager?.stopMonitoring(for: region)
+        }
+        if let constraint = beaconConstraint {
+            locationManager?.stopRangingBeacons(satisfying: constraint)
+        }
+        beaconDetectionIsActive = false
+    }
+    
     private func monitorBeacons() {
         if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self)
             && CLLocationManager.isRangingAvailable() {
             print("start ranging")
-            let beaconConstraint = CLBeaconIdentityConstraint(uuid: Constants.doorUUID!)
-            let beaconRegion = CLBeaconRegion(beaconIdentityConstraint: beaconConstraint, identifier: "DoorBeacon")
-            beaconRegion.notifyEntryStateOnDisplay = true
-            beaconRegion.notifyOnEntry = true
-            locationManager!.startRangingBeacons(satisfying: beaconConstraint)
-            locationManager!.startMonitoring(for: beaconRegion)
+            beaconConstraint = CLBeaconIdentityConstraint(uuid: Constants.doorUUID!)
+            beaconRegion = CLBeaconRegion(beaconIdentityConstraint: beaconConstraint!, identifier: "DoorBeacon")
+            beaconRegion!.notifyEntryStateOnDisplay = true
+            beaconRegion!.notifyOnEntry = true
+            locationManager!.startRangingBeacons(satisfying: beaconConstraint!)
+            locationManager!.startMonitoring(for: beaconRegion!)
             beaconDetectionIsActive = true
         } else {
             assertionFailure("Device does not support BLE")
