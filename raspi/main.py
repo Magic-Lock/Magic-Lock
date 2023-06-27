@@ -3,8 +3,6 @@ import io
 import serial_asyncio
 from aiohttp import web
 from abc import ABC, abstractmethod
-import time
-from enum import Enum
 from math import floor
 
 ###################### Doors ######################
