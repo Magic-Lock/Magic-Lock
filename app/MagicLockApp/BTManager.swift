@@ -38,6 +38,8 @@ class BTManager: NSObject, ObservableObject {
             print("start ranging")
             let beaconConstraint = CLBeaconIdentityConstraint(uuid: Constants.doorUUID!)
             let beaconRegion = CLBeaconRegion(beaconIdentityConstraint: beaconConstraint, identifier: "DoorBeacon")
+            beaconRegion.notifyEntryStateOnDisplay = true
+            beaconRegion.notifyOnEntry = true
             locationManager!.startRangingBeacons(satisfying: beaconConstraint)
             locationManager!.startMonitoring(for: beaconRegion)
             beaconDetectionIsActive = true
@@ -62,6 +64,18 @@ extension BTManager: CLLocationManagerDelegate {
                 doorIsOpen = false
             }
         }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didEnterRegion region: CLRegion) {
+        print("entered region")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didDetermineState state: CLRegionState, for region: CLRegion) {
+        print("state")
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print("did update")
     }
 }
 

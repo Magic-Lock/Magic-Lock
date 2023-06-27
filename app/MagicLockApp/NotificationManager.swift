@@ -27,7 +27,8 @@ class NotificationManager: NSObject {
     
     public static func sendNotification(opened: Bool) {
         let content = UNMutableNotificationContent()
-        content.title = "\(opened ? "opened" : "closed") the door"
+        content.title = "MagicLock"
+        content.body = "\(opened ? "opened" : "closed") the door"
         content.sound = UNNotificationSound.default
 
         // show this notification five seconds from now
