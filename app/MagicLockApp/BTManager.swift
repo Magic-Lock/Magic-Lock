@@ -11,6 +11,14 @@ import SwiftUI
 
 class BTManager: NSObject, ObservableObject {
     @Published var lastRSSI: Int = 0
+    @Published var doorUUID = Constants.doorUUID!.uuidString {
+        didSet {
+            guard oldValue != "" else { return }
+            print("new uuid")
+            stopManager()
+            startManager()
+        }
+    }
     @Published var beaconDetectionIsActive = false
     @Published var doorIsOpen = false
     @Published var shouldActivate = false {
@@ -31,6 +39,7 @@ class BTManager: NSObject, ObservableObject {
     private var beaconRegion: CLBeaconRegion?
     
     private func startManager() {
+        guard shouldActivate else { return }
         peripheralManager = CBPeripheralManager(delegate: self, queue: nil)
         locationManager = CLLocationManager()
         locationManager!.delegate = self
@@ -54,7 +63,7 @@ class BTManager: NSObject, ObservableObject {
         if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self)
             && CLLocationManager.isRangingAvailable() {
             print("start ranging")
-            beaconConstraint = CLBeaconIdentityConstraint(uuid: Constants.doorUUID!)
+            beaconConstraint = CLBeaconIdentityConstraint(uuid: UUID(uuidString: doorUUID)!)
             beaconRegion = CLBeaconRegion(beaconIdentityConstraint: beaconConstraint!, identifier: "DoorBeacon")
             beaconRegion!.notifyEntryStateOnDisplay = true
             beaconRegion!.notifyOnEntry = true

@@ -20,6 +20,10 @@ struct ContentView: View {
                             Image(systemName: "\(btManager.doorIsOpen ? "door.left.hand.open" : "door.left.hand.closed")")
                         }
                         Text("Last RSSI: \(btManager.lastRSSI)")
+                        HStack {
+                            Text("UUID: ")
+                            TextField("Door UUID", text: $btManager.doorUUID)
+                        }
                     }
                     Section(header: Text("BLE Beacon")) {
                         HStack {
