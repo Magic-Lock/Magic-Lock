@@ -26,6 +26,11 @@ struct ContentView: View {
                         }
                     }
                     Section(header: Text("BLE Beacon")) {
+                        Toggle("Activate Beacon Detection", isOn: $btManager.shouldActivate)
+                        HStack {
+                            Text("RSSI Threshold: ")
+                            TextField("Threshold", value: $btManager.thresholdRSSI, formatter: NumberFormatter())
+                        }
                         HStack {
                             Text(verbatim: "Beacon Detection is \(btManager.beaconDetectionIsActive ? "active" : "not active")")
                             Spacer()
@@ -33,7 +38,6 @@ struct ContentView: View {
                                 ProgressView()
                             }
                         }
-                        Toggle("Activate Beacon Detection", isOn: $btManager.shouldActivate)
                     }
                 }
                 .navigationTitle("MagicLock")

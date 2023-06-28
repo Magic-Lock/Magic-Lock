@@ -11,6 +11,7 @@ import SwiftUI
 
 class BTManager: NSObject, ObservableObject {
     @Published var lastRSSI: Int = 0
+    @Published var thresholdRSSI: Int = -55
     @Published var doorUUID = Constants.doorUUID!.uuidString {
         didSet {
             guard oldValue != "" else { return }
@@ -84,10 +85,10 @@ extension BTManager: CLLocationManagerDelegate {
             guard beacon.rssi != 0 else { return }
             print("found beacon with rssi: \(beacon.rssi)")
             lastRSSI = beacon.rssi
-            if beacon.rssi >= -55 {
+            if beacon.rssi >= thresholdRSSI {
                 doorConnector.doorShouldBeUnlocked = true
                 doorIsOpen = true
-            } else if beacon.rssi <= -55 {
+            } else if beacon.rssi <= thresholdRSSI {
                 doorConnector.doorShouldBeUnlocked = false
                 doorIsOpen = false
             }
